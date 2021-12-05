@@ -1,0 +1,10 @@
+{
+  "name": "poketypes",
+  "version": "1.0.0",
+  "description": "A simple game",
+  "main": "dist/elm.js",
+  "scripts": {
+    "deploy": "elm make Src/HomePage.elm --output dist/elm.js"
+  },  "author": "",
+  "license": "ISC"
+}

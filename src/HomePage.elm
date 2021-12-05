@@ -5,13 +5,14 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import PokeTypes exposing (PokeType(..), getName)
-import Task exposing (onError)
+import PokeTypes exposing (getVs)
+import List exposing (head)
 
 
 type Msg
     = Start
     | Stop
-    | ChooseDefender PokeType
+    | CounterWith PokeType
 
 
 type State
@@ -61,7 +62,7 @@ view model =
 
 counterDiv : PokeType -> Html Msg
 counterDiv pokeType =
-    div []
+    div [ onClick (CounterWith pokeType) ]
         [ p [] [ text "Counter with:" ]
         ,p [ class "type-name" ] [ text (getName pokeType) ]
         ]
@@ -87,7 +88,7 @@ update msg model =
         Stop ->
             { model | state = Initial }
 
-        ChooseDefender counterWith ->
+        CounterWith counterWith ->
             { model | opponent = counterWith }
 
 
@@ -97,6 +98,16 @@ main =
 
 getCounter : Int -> PokeType -> PokeType
 getCounter position pokeType =
-    case position of
-        _ ->
-            pokeType
+    let vsList = getVs pokeType
+    in
+    getAtPositionOrDefault position vsList pokeType
+
+getAtPositionOrDefault: Int -> List a -> a -> a
+getAtPositionOrDefault position list default = 
+    let 
+        remainingList = List.drop position list
+        head = List.head remainingList
+    in    
+    case head of
+        Just h -> h
+        _ -> default

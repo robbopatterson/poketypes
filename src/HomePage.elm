@@ -4,14 +4,15 @@ import Browser exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
+import PokeTypes exposing (PokeType(..), getName)
 import Task exposing (onError)
-import PokeTypes exposing (PokeType(..),getName)
 
 
 type Msg
     = Start
     | Stop
     | ChooseDefender PokeType
+
 
 type State
     = Initial
@@ -20,7 +21,8 @@ type State
 
 type alias Model =
     { state : State
-    , opponent: PokeType }
+    , opponent : PokeType
+    }
 
 
 initialModel : Model
@@ -28,6 +30,7 @@ initialModel =
     { state = Initial, opponent = Fairy }
 
 
+view : { a | state : State, opponent : PokeType } -> Html Msg
 view model =
     if model.state == Initial then
         div [ class "jumbotron" ]
@@ -40,20 +43,40 @@ view model =
 
     else
         div [ class "game-container" ]
-            [ div [ class "title-section" ] [
-                h1 [ class "center" ] [text "Pokemon Type Practice"]
-                , p [class "center"] [text "Score: 0"]
+            [ div [ class "title-section" ]
+                [ h1 [ class "center" ] [ text "Pokemon Type Practice" ]
+                , p [ class "center" ] [ text "Score: 0" ]
                 ]
-            , div [ class "opponent center" ] [ 
-                div [] [
-                    p [] [ text "Opponent is:"]
-                    ,p [ class "type-name"] [ text (getName model.opponent)]
+            , div [ class "opponent center" ]
+                [ div []
+                    [ p [] [ text "Opponent is:" ]
+                    , p [ class "type-name" ] [ text (getName model.opponent) ]
+                    ]
                 ]
-                ]
-            , div [ class "verses1 center" ] [ text "1" ]
-            , div [ class "verses2 center" ] [ text "2" ]
-            , div [ class "verses3 center" ] [ text "3" ]
+            , div [ class "verses1 center" ] [ counterDiv (leftCounter model) ]
+            , div [ class "verses2 center" ] [ counterDiv (centerCounter model) ]
+            , div [ class "verses3 center" ] [ counterDiv (rightCounter model) ]
             ]
+
+
+counterDiv : PokeType -> Html Msg
+counterDiv pokeType =
+    div []
+        [ p [] [ text "Counter with:" ]
+        ,p [ class "type-name" ] [ text (getName pokeType) ]
+        ]
+
+
+leftCounter model =
+    getCounter 0 model.opponent
+
+
+centerCounter model =
+    getCounter 1 model.opponent
+
+
+rightCounter model =
+    getCounter 2 model.opponent
 
 
 update msg model =
@@ -64,8 +87,16 @@ update msg model =
         Stop ->
             { model | state = Initial }
 
-        ChooseDefender counterWith -> 
+        ChooseDefender counterWith ->
             { model | opponent = counterWith }
+
 
 main =
     Browser.sandbox { init = initialModel, update = update, view = view }
+
+
+getCounter : Int -> PokeType -> PokeType
+getCounter position pokeType =
+    case position of
+        _ ->
+            pokeType

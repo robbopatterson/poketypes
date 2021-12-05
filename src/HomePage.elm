@@ -4,9 +4,8 @@ import Browser exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
-import PokeTypes exposing (PokeType(..), getName)
-import PokeTypes exposing (getVs)
 import List exposing (head)
+import PokeTypes exposing (PokeType(..), getColor, getName, getVs)
 
 
 type Msg
@@ -48,23 +47,32 @@ view model =
                 [ h1 [ class "center" ] [ text "Pokemon Type Practice" ]
                 , p [ class "center" ] [ text "Score: 0" ]
                 ]
-            , div [ class "opponent center" ]
+            , div
+                [ class "opponent center"
+                , style "background-color" (getColor model.opponent)
+                ]
                 [ div []
                     [ p [] [ text "Opponent is:" ]
                     , p [ class "type-name" ] [ text (getName model.opponent) ]
                     ]
                 ]
-            , div [ class "verses1 center" ] [ counterDiv (leftCounter model) ]
-            , div [ class "verses2 center" ] [ counterDiv (centerCounter model) ]
-            , div [ class "verses3 center" ] [ counterDiv (rightCounter model) ]
+            , counterDiv "verses1 center" (leftCounter model)
+            , counterDiv "verses2 center" (centerCounter model)
+            , counterDiv "verses3 center" (rightCounter model)
             ]
 
 
-counterDiv : PokeType -> Html Msg
-counterDiv pokeType =
-    div [ onClick (CounterWith pokeType) ]
-        [ p [] [ text "Counter with:" ]
-        ,p [ class "type-name" ] [ text (getName pokeType) ]
+counterDiv : String -> PokeType -> Html Msg
+counterDiv classStr pokeType =
+    div
+        [ class classStr
+        , style "background-color" (getColor pokeType)
+        , onClick (CounterWith pokeType)
+        ]
+        [ div []
+            [ p [] [ text "Counter with:" ]
+            , p [ class "type-name" ] [ text (getName pokeType) ]
+            ]
         ]
 
 
@@ -98,16 +106,25 @@ main =
 
 getCounter : Int -> PokeType -> PokeType
 getCounter position pokeType =
-    let vsList = getVs pokeType
+    let
+        vsList =
+            getVs pokeType
     in
     getAtPositionOrDefault position vsList pokeType
 
-getAtPositionOrDefault: Int -> List a -> a -> a
-getAtPositionOrDefault position list default = 
-    let 
-        remainingList = List.drop position list
-        head = List.head remainingList
-    in    
+
+getAtPositionOrDefault : Int -> List a -> a -> a
+getAtPositionOrDefault position list default =
+    let
+        remainingList =
+            List.drop position list
+
+        head =
+            List.head remainingList
+    in
     case head of
-        Just h -> h
-        _ -> default
+        Just h ->
+            h
+
+        _ ->
+            default

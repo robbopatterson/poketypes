@@ -22,6 +22,14 @@ getName pokeType =
        Dark -> "Dark"
        Dragon -> "Dragon"
 
+getColor : PokeType -> String
+getColor pokeType = 
+    case pokeType of
+       Fairy -> "pink"
+       Steel -> "grey"
+       Dark -> "black"
+       Dragon -> "yellow"
+
 getVs: PokeType -> List PokeType
 getVs pokeType =
     case pokeType of

@@ -103,23 +103,24 @@ rightCounter model =
     getCounter 2 model.opponent
 
 
+update : Msg -> Model -> (Model,Cmd msg)
 update msg model =
     case msg of
         Start ->
-            { model | state = Started }
+            ( { model | state = Started }, Cmd.none )
 
         Stop ->
-            { model | state = Initial }
+            ( { model | state = Initial }, Cmd.none )
 
         CounterWith counterWith ->
             let
                 lastRoundSummary = generateLastRoundSummary model.opponent counterWith
             in
-            { model
+            ( { model
                 | opponent = counterWith
                 , score = model.score + lastRoundSummary.scoreDelta
                 , lastRoundSummary = Just lastRoundSummary
-            }
+            }, Cmd.none )
 
 generateLastRoundSummary: PokeType -> PokeType -> LastRoundSummary
 generateLastRoundSummary opponentType myCounterType =
@@ -135,9 +136,18 @@ generateLastRoundSummary opponentType myCounterType =
     in
         { message = (getName myCounterType) ++ " vs " ++ (getName opponentType), color=color, scoreDelta=scoreDelta }
 
+main : Program () Model Msg
 main =
-    Browser.sandbox { init = initialModel, update = update, view = view }
+    Browser.element { 
+        init = \flags->(initialModel,Cmd.none), 
+        update = update, 
+        view = view, 
+        subscriptions=subscriptions 
+        }
 
+subscriptions : Model -> Sub msg
+subscriptions model =
+    Sub.none
 
 getCounter : Int -> PokeType -> PokeType
 getCounter position pokeType =

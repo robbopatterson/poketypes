@@ -1,12 +1,18 @@
 module HomePage exposing (main)
 
 import Browser exposing (..)
+import Debug exposing (toString)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import List exposing (head)
-import PokeTypes exposing (PokeType(..), getColor, getName, getVs)
+import PokeTypes exposing (PokeType(..), getColor, getName, listStrongAgainst, listWeakAgainst)
 
+type alias LastRoundSummary = {
+        message: String
+        ,color: String
+        ,scoreDelta: Int
+    }
 
 type Msg
     = Start
@@ -22,15 +28,17 @@ type State
 type alias Model =
     { state : State
     , opponent : PokeType
+    , score : Int
+    , lastRoundSummary : Maybe LastRoundSummary
     }
 
 
 initialModel : Model
 initialModel =
-    { state = Initial, opponent = Fairy }
+    { state = Initial, opponent = Grass, score = 0, lastRoundSummary=Nothing }
 
 
-view : { a | state : State, opponent : PokeType } -> Html Msg
+view : Model -> Html Msg
 view model =
     if model.state == Initial then
         div [ class "jumbotron" ]
@@ -45,7 +53,14 @@ view model =
         div [ class "game-container" ]
             [ div [ class "title-section" ]
                 [ h1 [ class "center" ] [ text "Pokemon Type Practice" ]
-                , p [ class "center" ] [ text "Score: 0" ]
+                , p [ class "center" ] [ text ("Score: " ++ toString model.score) ]
+                , div [] [
+                    case model.lastRoundSummary of 
+                        Just summary -> 
+                            div [ class "center", style "background-color" summary.color ] [ text summary.message ]
+                        Nothing ->
+                            div [] []
+                ]
                 ]
             , div
                 [ class "opponent center"
@@ -97,8 +112,28 @@ update msg model =
             { model | state = Initial }
 
         CounterWith counterWith ->
-            { model | opponent = counterWith }
+            let
+                lastRoundSummary = generateLastRoundSummary model.opponent counterWith
+            in
+            { model
+                | opponent = counterWith
+                , score = model.score + lastRoundSummary.scoreDelta
+                , lastRoundSummary = Just lastRoundSummary
+            }
 
+generateLastRoundSummary: PokeType -> PokeType -> LastRoundSummary
+generateLastRoundSummary opponentType myCounterType =
+    let
+        isCounterStrong = True
+        isCounterWeak = True
+
+        (color, scoreDelta) = case (isCounterStrong, isCounterWeak) of
+           (True,True) -> ("yellow",0)
+           (False,False) -> ("yellow",0)
+           (True,False) -> ("red",-10)
+           (False,True) -> ("green",10)
+    in
+        { message = (getName myCounterType) ++ " vs " ++ (getName opponentType), color=color, scoreDelta=scoreDelta }
 
 main =
     Browser.sandbox { init = initialModel, update = update, view = view }
@@ -108,7 +143,7 @@ getCounter : Int -> PokeType -> PokeType
 getCounter position pokeType =
     let
         vsList =
-            getVs pokeType
+            getVersesList pokeType
     in
     getAtPositionOrDefault position vsList pokeType
 
@@ -128,3 +163,28 @@ getAtPositionOrDefault position list default =
 
         _ ->
             default
+
+
+getVersesList : PokeType -> List PokeType
+getVersesList pokeType =
+    let
+        weakAgainst =
+            case listWeakAgainst pokeType |> List.head of
+                Just pt ->
+                    pt
+
+                Nothing ->
+                    pokeType
+
+        strongAgainst =
+            case listStrongAgainst pokeType |> List.head of
+                Just pt ->
+                    pt
+
+                Nothing ->
+                    pokeType
+
+        neutralAgainst =
+            pokeType
+    in
+    [ weakAgainst, neutralAgainst, strongAgainst ]

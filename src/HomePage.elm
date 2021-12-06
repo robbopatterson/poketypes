@@ -124,8 +124,8 @@ update msg model =
 generateLastRoundSummary: PokeType -> PokeType -> LastRoundSummary
 generateLastRoundSummary opponentType myCounterType =
     let
-        isCounterStrong = True
-        isCounterWeak = True
+        isCounterStrong = List.member myCounterType (listStrongAgainst opponentType)
+        isCounterWeak = List.member myCounterType (listWeakAgainst opponentType)
 
         (color, scoreDelta) = case (isCounterStrong, isCounterWeak) of
            (True,True) -> ("yellow",0)

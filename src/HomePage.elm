@@ -7,6 +7,8 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import List exposing (head)
 import PokeTypes exposing (PokeType(..), getColor, getName, listStrongAgainst, listWeakAgainst)
+import PokeTypes exposing (allTypes)
+import Random exposing(..)
 
 type alias LastRoundSummary = {
         message: String
@@ -30,12 +32,18 @@ type alias Model =
     , opponent : PokeType
     , score : Int
     , lastRoundSummary : Maybe LastRoundSummary
+    , nextOpponentList : List PokeType
     }
 
 
 initialModel : Model
-initialModel =
-    { state = Initial, opponent = Grass, score = 0, lastRoundSummary=Nothing }
+initialModel = {
+    state = Initial,
+    opponent = Grass, 
+    score = 0, 
+    lastRoundSummary=Nothing,
+    nextOpponentList=allTypes
+    }
 
 
 view : Model -> Html Msg
@@ -103,6 +111,18 @@ rightCounter model =
     getCounter 2 model.opponent
 
 
+rotateOppponents: List PokeType -> ( PokeType, List PokeType )
+rotateOppponents opponentList = 
+    let
+        head = case List.head opponentList of 
+            Just h -> h 
+            Nothing -> ShouldNeverOccur
+        tail = case List.tail opponentList of
+            Just l -> l
+            Nothing -> []
+    in
+        (head, tail ++ [head]) 
+
 update : Msg -> Model -> (Model,Cmd msg)
 update msg model =
     case msg of
@@ -115,9 +135,11 @@ update msg model =
         CounterWith counterWith ->
             let
                 lastRoundSummary = generateLastRoundSummary model.opponent counterWith
+                (nextOpponent, nextOpponentList) = rotateOppponents model.nextOpponentList
             in
             ( { model
-                | opponent = counterWith
+                | opponent = nextOpponent
+                , nextOpponentList = nextOpponentList
                 , score = model.score + lastRoundSummary.scoreDelta
                 , lastRoundSummary = Just lastRoundSummary
             }, Cmd.none )

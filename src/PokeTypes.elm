@@ -20,7 +20,7 @@ type PokeType
     | Ghost
     | Electric
     | Normal
-
+    | ShouldNeverOccur
 
 allTypes : List PokeType
 allTypes =
@@ -43,6 +43,7 @@ allTypes =
     , Electric
     , Normal
     ]
+-- NOTE: ShouldNeverOccur is not listed in allTypes
 
 
 getName : PokeType -> String
@@ -102,6 +103,8 @@ getName pokeType =
         Normal ->
             "Normal"
 
+        ShouldNeverOccur ->
+            "INTERNAL Error.  This should have be used."
 
 getColor : PokeType -> String
 getColor pokeType =
@@ -159,6 +162,9 @@ getColor pokeType =
 
         Normal ->
             "#A7A878"
+
+        ShouldNeverOccur ->
+            ""
 
 
 listStrongAgainst : PokeType -> List PokeType
@@ -218,6 +224,9 @@ listStrongAgainst pokeType =
         Normal ->
             []
 
+        ShouldNeverOccur ->
+            []
+
 
 listWeakAgainst : PokeType -> List PokeType
 listWeakAgainst pokeType =
@@ -275,3 +284,6 @@ listWeakAgainst pokeType =
 
         Normal ->
             [Fighting]
+
+        ShouldNeverOccur ->
+            []

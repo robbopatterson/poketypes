@@ -60,6 +60,9 @@ view model =
             ]
 
     else
+        let
+            (leftCounter, centerCounter, rightCounter) = getVerses model.opponent
+        in
         div [ class "game-container" ]
             [ div [ class "title-section" ]
                 [ h1 [ class "center" ] [ text "Pokemon Type Practice" ]
@@ -81,9 +84,9 @@ view model =
                     , p [ class "type-name" ] [ text (getName model.opponent) ]
                     ]
                 ]
-            , counterDiv "verses1 center" (leftCounter model)
-            , counterDiv "verses2 center" (centerCounter model)
-            , counterDiv "verses3 center" (rightCounter model)
+            , counterDiv "verses1 center" leftCounter
+            , counterDiv "verses2 center" centerCounter
+            , counterDiv "verses3 center" rightCounter
             ]
 
 
@@ -99,19 +102,6 @@ counterDiv classStr pokeType =
             , p [ class "type-name" ] [ text (getName pokeType) ]
             ]
         ]
-
-
-leftCounter model =
-    getCounter 0 model.opponent
-
-
-centerCounter model =
-    getCounter 1 model.opponent
-
-
-rightCounter model =
-    getCounter 2 model.opponent
-
 
 rotateOppponents: List PokeType -> ( PokeType, List PokeType )
 rotateOppponents opponentList = 
@@ -179,34 +169,8 @@ subscriptions : Model -> Sub msg
 subscriptions model =
     Sub.none
 
-getCounter : Int -> PokeType -> PokeType
-getCounter position pokeType =
-    let
-        vsList =
-            getVersesList pokeType
-    in
-    getAtPositionOrDefault position vsList pokeType
-
-
-getAtPositionOrDefault : Int -> List a -> a -> a
-getAtPositionOrDefault position list default =
-    let
-        remainingList =
-            List.drop position list
-
-        head =
-            List.head remainingList
-    in
-    case head of
-        Just h ->
-            h
-
-        _ ->
-            default
-
-
-getVersesList : PokeType -> List PokeType
-getVersesList pokeType =
+getVerses : PokeType -> (PokeType, PokeType, PokeType)
+getVerses pokeType =
     let
         weakAgainst =
             case listWeakAgainst pokeType |> List.head of
@@ -227,4 +191,4 @@ getVersesList pokeType =
         neutralAgainst =
             pokeType
     in
-    [ weakAgainst, neutralAgainst, strongAgainst ]
+    ( weakAgainst, neutralAgainst, strongAgainst )

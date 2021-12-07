@@ -9,6 +9,7 @@ import List exposing (head)
 import PokeTypes exposing (PokeType(..), getColor, getName, listStrongAgainst, listWeakAgainst)
 import PokeTypes exposing (allTypes)
 import Random exposing(..)
+import Random.List
 
 type alias LastRoundSummary = {
         message: String
@@ -20,6 +21,7 @@ type Msg
     = Start
     | Stop
     | CounterWith PokeType
+    | RandomizedOpponents (List PokeType)
 
 
 type State
@@ -144,6 +146,12 @@ update msg model =
                 , lastRoundSummary = Just lastRoundSummary
             }, Cmd.none )
 
+        RandomizedOpponents opponentList ->
+            let
+                (nextOpponent, nextOpponentList) = rotateOppponents opponentList
+            in
+            ( { model | opponent = nextOpponent, nextOpponentList = opponentList }, Cmd.none )
+
 generateLastRoundSummary: PokeType -> PokeType -> LastRoundSummary
 generateLastRoundSummary opponentType myCounterType =
     let
@@ -161,7 +169,7 @@ generateLastRoundSummary opponentType myCounterType =
 main : Program () Model Msg
 main =
     Browser.element { 
-        init = \flags->(initialModel,Cmd.none), 
+        init = \flags->(initialModel,generate RandomizedOpponents (Random.List.shuffle allTypes) ),
         update = update, 
         view = view, 
         subscriptions=subscriptions 

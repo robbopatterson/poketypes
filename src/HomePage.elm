@@ -140,7 +140,11 @@ update msg model =
             let
                 (nextOpponent, nextOpponentList) = rotateOppponents opponentList
             in
-            ( { model | opponent = nextOpponent, nextOpponentList = opponentList }, Cmd.none )
+            ( 
+                { model | opponent = nextOpponent, nextOpponentList = opponentList }, 
+                Cmd.none
+            )
+
 
 generateLastRoundSummary: PokeType -> PokeType -> LastRoundSummary
 generateLastRoundSummary opponentType myCounterType =
@@ -168,6 +172,14 @@ main =
 subscriptions : Model -> Sub msg
 subscriptions model =
     Sub.none
+
+listNeutalAgainst: PokeType -> (List PokeType) -> (List PokeType)
+listNeutalAgainst pokeType allTypes = 
+    let
+        allWeakAndStrong = (listWeakAgainst pokeType) ++ (listStrongAgainst pokeType)
+    in
+        List.filter (\pt -> not (List.member pt allWeakAndStrong)) allTypes
+
 
 getVerses : PokeType -> (PokeType, PokeType, PokeType)
 getVerses pokeType =

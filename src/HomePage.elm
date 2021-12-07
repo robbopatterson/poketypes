@@ -22,6 +22,10 @@ type Msg
     | Stop
     | CounterWith PokeType
     | RandomizedOpponents (List PokeType)
+    | RandomizedStrongAgainst (Maybe PokeType, List PokeType)
+    | RandomizedWeakAgainst (Maybe PokeType, List PokeType)
+    | RandomizedNeutralAgainst (Maybe PokeType, List PokeType)
+    | RandomizeOpponentOrder (Int)
 
 
 type State
@@ -35,16 +39,24 @@ type alias Model =
     , score : Int
     , lastRoundSummary : Maybe LastRoundSummary
     , nextOpponentList : List PokeType
+    , strongAgainst : PokeType
+    , neutralAgainst : PokeType
+    , weakAgainst : PokeType
+    , counterWith : (PokeType, PokeType, PokeType)
     }
 
 
 initialModel : Model
 initialModel = {
-    state = Initial,
-    opponent = Grass, 
-    score = 0, 
-    lastRoundSummary=Nothing,
-    nextOpponentList=allTypes
+    state = Initial
+    ,opponent = Grass
+    ,score = 0
+    ,lastRoundSummary=Nothing
+    ,nextOpponentList=allTypes
+    ,strongAgainst=ShouldNeverOccur
+    ,neutralAgainst=ShouldNeverOccur
+    ,weakAgainst=ShouldNeverOccur
+    ,counterWith=(ShouldNeverOccur,ShouldNeverOccur,ShouldNeverOccur)
     }
 
 
@@ -61,7 +73,7 @@ view model =
 
     else
         let
-            (leftCounter, centerCounter, rightCounter) = getVerses model.opponent
+            (leftCounter, centerCounter, rightCounter) = model.counterWith
         in
         div [ class "game-container" ]
             [ div [ class "title-section" ]
@@ -115,7 +127,7 @@ rotateOppponents opponentList =
     in
         (head, tail ++ [head]) 
 
-update : Msg -> Model -> (Model,Cmd msg)
+update : Msg -> Model -> (Model,Cmd Msg)
 update msg model =
     case msg of
         Start ->
@@ -134,16 +146,68 @@ update msg model =
                 , nextOpponentList = nextOpponentList
                 , score = model.score + lastRoundSummary.scoreDelta
                 , lastRoundSummary = Just lastRoundSummary
-            }, Cmd.none )
+            }, startOpponentSelection )
 
         RandomizedOpponents opponentList ->
             let
                 (nextOpponent, nextOpponentList) = rotateOppponents opponentList
+                strongAgainstList = listStrongAgainst nextOpponent
             in
             ( 
-                { model | opponent = nextOpponent, nextOpponentList = opponentList }, 
-                Cmd.none
+                { model | opponent = nextOpponent, nextOpponentList = nextOpponentList }
+                ,generate RandomizedStrongAgainst (Random.List.choose strongAgainstList)
             )
+
+        RandomizedStrongAgainst (strongAgainstMaybe, _) ->
+            let 
+                strongAgainst = case (strongAgainstMaybe) of
+                    Just pokeType -> pokeType
+                    Nothing -> model.opponent
+                weakAgainstList = listWeakAgainst model.opponent
+            in 
+            ( 
+                {model|strongAgainst=strongAgainst}
+                ,generate RandomizedWeakAgainst (Random.List.choose weakAgainstList)
+            )
+
+        RandomizedWeakAgainst (weakAgainstMaybe, _) ->
+            let 
+                weakAgainst = case (weakAgainstMaybe) of
+                    Just pokeType -> pokeType
+                    Nothing -> model.opponent
+
+                neutralAgainstList = listNeutalAgainst model.opponent allTypes
+            in 
+            ( 
+                {model|weakAgainst=weakAgainst}
+                ,generate RandomizedNeutralAgainst (Random.List.choose neutralAgainstList)
+            )
+
+        RandomizedNeutralAgainst (neutralAgainstMaybe, _) ->
+            let 
+                neutralAgainst = case (neutralAgainstMaybe) of
+                    Just pokeType -> pokeType
+                    Nothing -> model.opponent
+            in 
+            ( 
+                {model|neutralAgainst=neutralAgainst}
+                ,generate RandomizeOpponentOrder (Random.int 1 6)
+            )
+        
+        RandomizeOpponentOrder (randomInt) ->
+            let
+                counterWith = case (randomInt) of 
+                    1-> (model.strongAgainst,  model.weakAgainst,    model.neutralAgainst )
+                    2-> (model.strongAgainst,  model.neutralAgainst, model.weakAgainst    )
+                    3-> (model.weakAgainst,    model.strongAgainst,  model.neutralAgainst )
+                    4-> (model.weakAgainst,    model.neutralAgainst, model.strongAgainst  )
+                    5-> (model.neutralAgainst, model.weakAgainst,    model.strongAgainst  )
+                    6-> (model.neutralAgainst, model.strongAgainst,  model.weakAgainst    )
+                    _-> (ShouldNeverOccur,     ShouldNeverOccur,     ShouldNeverOccur     )
+            in
+                ({model|counterWith=counterWith}
+                ,Cmd.none)
+            
 
 
 generateLastRoundSummary: PokeType -> PokeType -> LastRoundSummary
@@ -160,10 +224,14 @@ generateLastRoundSummary opponentType myCounterType =
     in
         { message = (getName myCounterType) ++ " vs " ++ (getName opponentType), color=color, scoreDelta=scoreDelta }
 
+startOpponentSelection : Cmd Msg
+startOpponentSelection =
+    generate RandomizedOpponents (Random.List.shuffle allTypes)
+
 main : Program () Model Msg
 main =
     Browser.element { 
-        init = \flags->(initialModel,generate RandomizedOpponents (Random.List.shuffle allTypes) ),
+        init = \flags->(initialModel,startOpponentSelection),
         update = update, 
         view = view, 
         subscriptions=subscriptions 
@@ -176,31 +244,6 @@ subscriptions model =
 listNeutalAgainst: PokeType -> (List PokeType) -> (List PokeType)
 listNeutalAgainst pokeType allTypes = 
     let
-        allWeakAndStrong = (listWeakAgainst pokeType) ++ (listStrongAgainst pokeType)
+        allWeakAndStrongAndSelf = pokeType :: (listWeakAgainst pokeType) ++ (listStrongAgainst pokeType)
     in
-        List.filter (\pt -> not (List.member pt allWeakAndStrong)) allTypes
-
-
-getVerses : PokeType -> (PokeType, PokeType, PokeType)
-getVerses pokeType =
-    let
-        weakAgainst =
-            case listWeakAgainst pokeType |> List.head of
-                Just pt ->
-                    pt
-
-                Nothing ->
-                    pokeType
-
-        strongAgainst =
-            case listStrongAgainst pokeType |> List.head of
-                Just pt ->
-                    pt
-
-                Nothing ->
-                    pokeType
-
-        neutralAgainst =
-            pokeType
-    in
-    ( weakAgainst, neutralAgainst, strongAgainst )
+        List.filter (\pt -> not (List.member pt allWeakAndStrongAndSelf)) allTypes

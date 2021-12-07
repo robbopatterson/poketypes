@@ -104,7 +104,7 @@ getName pokeType =
             "Normal"
 
         ShouldNeverOccur ->
-            "INTERNAL Error.  This should have be used."
+            "INTERNAL Error. This should not be used here."
 
 getColor : PokeType -> String
 getColor pokeType =

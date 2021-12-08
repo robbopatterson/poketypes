@@ -155,7 +155,7 @@ getColor pokeType =
             "#C03028"
 
         Ghost ->
-            "#A0409F"
+            "#715698"
 
         Electric ->
             "#F8D030"

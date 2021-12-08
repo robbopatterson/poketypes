@@ -89,6 +89,7 @@ view model =
                 ]
             , div
                 [ class "opponent center"
+                , style "margin" "30px"
                 , style "background-color" (getColor model.opponent)
                 ]
                 [ div []

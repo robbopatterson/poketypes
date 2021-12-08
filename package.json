@@ -4,7 +4,9 @@
   "description": "A simple game",
   "main": "dist/elm.js",
   "scripts": {
+    "build": "elm make Src/HomePage.elm --output dist/elm.js",
     "deploy": "elm make Src/HomePage.elm --output dist/elm.js"
-  },  "author": "",
+  },  
+  "author": "",
   "license": "ISC"
 }

@@ -47,7 +47,7 @@ allTypes =
 
 
 getName : PokeType -> String
-getName pokeType =
+getName pokeType = 
     case pokeType of
         Grass ->
             "Grass"
@@ -167,59 +167,130 @@ getColor pokeType =
             ""
 
 
+
 listStrongAgainst : PokeType -> List PokeType
-listStrongAgainst pokeType =
+listStrongAgainst pokeType = 
+    List.map 
+        (\(_, strongAgainst)->strongAgainst)
+        (listStrongAgainstAndWhy pokeType) 
+
+listStrongAgainstAndWhy : PokeType -> List (String, PokeType)
+listStrongAgainstAndWhy pokeType =
     case pokeType of
         Grass ->
-            [ Water, Ground, Rock ]
+            [ 
+                ("soaks up", Water)
+                ,("grows over", Ground)
+                ,("covers", Rock)
+            ]
 
         Rock ->
-            [ Fire, Ice, Flying, Bug ]
+            [ 
+                ("impervious to", Fire), 
+                ("smashs", Ice), 
+                ("smashs", Flying), 
+                ("smashs", Bug)
+            ]
 
         Ice ->
-            [ Grass, Ground, Flying, Dragon ]
+            [ 
+                ("covers", Grass), 
+                ("covers", Ground), 
+                ("impars", Flying), 
+                ("freeze", Dragon) 
+                ]
 
         Dragon ->
-            [ Dragon ]
+            [ 
+                ("matches", Dragon)
+            ]
 
         Dark ->
-            [ Psychic ]
+            [ 
+                ("scares", Psychic) 
+            ]
 
         Psychic ->
-            [ Fighting, Poison ]
+            [ 
+                ("remotely defeats", Fighting), 
+                ("remotely defeats", Poison)
+            ]
 
         Bug ->
-            [ Grass, Psychic, Dark ]
+            [ 
+                ("eat" , Grass),
+                ("distracts", Psychic),
+                ("swarms", Dark)
+            ]
 
         Flying ->
-            [ Grass, Fighting, Bug ]
+            [ 
+                ("poops on", Grass), 
+                ("swoops over", Fighting),
+                ("eats", Bug) ]
 
         Steel ->
-            [ Ice, Rock, Fairy ]
+            [ 
+                ("cuts",Ice), 
+                ("crushs",Rock), 
+                ("destroys",Fairy)
+            ]
 
         Fire ->
-            [ Grass, Ice, Bug, Steel ]
+            [ 
+                ("burns",Grass), 
+                ("melts",Ice), 
+                ("attracts",Bug),
+                ("melts",Steel) 
+            ]
 
         Fighting ->
-            [ Normal, Ice, Rock, Dark, Steel ]
+            [ 
+                ("beat up", Normal), 
+                ("cracks", Ice), 
+                ("chops", Rock),
+                ("punchs out", Dark),
+                ("out manovers", Steel)
+            ]
 
         Ground ->
-            [ Fire, Electric, Poison, Rock, Steel ]
+            [ 
+                ("covers", Fire), 
+                ("insolates", Electric), 
+                ("soaks up",Poison), 
+                ("supports",Rock), 
+                ("unscathed by",Steel) ]
 
         Ghost ->
-            [ Psychic, Ghost ]
+            [ 
+                ("scares",Psychic), 
+                ("scares",Ghost)
+            ]
 
         Poison ->
-            [ Grass, Fairy ]
+            [ 
+                ("kills",Grass), 
+                ("kills", Fairy)
+            ]
 
         Water ->
-            [ Fire, Ground, Rock ]
+            [ 
+                ("puts out",Fire), 
+                ("erodes", Ground),
+                ("erodes", Rock)
+            ]
 
         Fairy ->
-            [ Fighting, Dragon, Dark ]
+            [ 
+                ("evades",Fighting), 
+                ("evades",Dragon), 
+                ("always defeats",Dark) ]
 
         Electric ->
-            [ Water, Flying ]
+            [ 
+                ("flows through",Water), 
+                ("strikes",Flying) 
+            ]
 
         Normal ->
             []

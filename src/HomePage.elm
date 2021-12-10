@@ -336,9 +336,19 @@ generateLastRoundSummary opponentType myCounterType =
             else
                 "+" ++ toString scoreDelta
 
-    in
-    { message = scoreDeltaDisplay ++ " " ++ getName myCounterType ++ " vs " ++ getName opponentType, color = color, scoreDelta = scoreDelta }
+        message =   -- Something like "+10 Fire melts Ice"
+            scoreDeltaDisplay 
+            ++ " " ++ getName myCounterType 
+            ++ " " ++ vsOrWhy opponentType myCounterType ++ " " 
+            ++ getName opponentType
 
+    in
+    { message = message, color = color, scoreDelta = scoreDelta }
+
+-- vsOrWhy tries to articulate why one type defeats another (ex "melts" for Fire vs Ice)
+vsOrWhy : PokeType -> PokeType -> String    
+vsOrWhy opponentType myCounterType  =
+    "vs"
 
 startOpponentSelection : Cmd Msg
 startOpponentSelection =

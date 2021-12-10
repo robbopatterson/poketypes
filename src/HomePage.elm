@@ -2,6 +2,7 @@ module HomePage exposing (main)
 
 import Browser exposing (..)
 import Debug exposing (toString)
+import Delay exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
@@ -27,6 +28,7 @@ type Msg
     | RandomizedWeakAgainst ( Maybe PokeType, List PokeType )
     | RandomizedNeutralAgainst ( Maybe PokeType, List PokeType )
     | RandomizeOpponentOrder Int
+    | NextSecond
 
 
 type State
@@ -38,6 +40,7 @@ type alias Model =
     { state : State
     , opponent : PokeType
     , score : Int
+    , remainingseconds : Int
     , lastRoundSummary : Maybe LastRoundSummary
     , nextOpponentList : List PokeType
     , strongAgainst : PokeType
@@ -52,6 +55,7 @@ initialModel =
     { state = Initial
     , opponent = Grass
     , score = 0
+    , remainingseconds = 30
     , lastRoundSummary = Nothing
     , nextOpponentList = allTypes
     , strongAgainst = ShouldNeverOccur
@@ -73,49 +77,57 @@ view model =
             ]
 
     else
-        let
-            ( leftCounter, centerCounter, rightCounter ) =
-                model.counterWith
-        in
-        div [ class "game-container" ]
-            [ div [ class "title-section" ]
-                [ h1 [ class "center" ] [ text "Pokemon Type Practice" ]
-                , p [ class "center" ] [ text ("Score: " ++ toString model.score) ]
-                , div
-                    [ style "display" "flex"
-                    , style "justify-content" "center"
-                    ]
-                    [ case model.lastRoundSummary of
-                        Just summary ->
-                            div [ class "center"
-                            , style "background-color" summary.color 
+        gameview model
+
+
+gameview : Model -> Html Msg
+gameview model =
+    let
+        ( leftCounter, centerCounter, rightCounter ) =
+            model.counterWith
+    in
+    div [ class "game-container" ]
+        [ div [ class "title-section" ]
+            [ h1 [ class "center" ] [ text "Pokemon Type Practice" ]
+            , p [ class "center" ] [ text ("Score: " ++ toString model.score) ]
+            , p [ class "center" ] [ text ("Time Remaining: " ++ toString model.remainingseconds) ]
+            , div
+                [ style "display" "flex"
+                , style "justify-content" "center"
+                ]
+                [ case model.lastRoundSummary of
+                    Just summary ->
+                        div
+                            [ class "center"
+                            , style "background-color" summary.color
                             , style "min-width" "300px"
                             , style "min-height" "40px"
-                            ] [ text summary.message ]
+                            ]
+                            [ text summary.message ]
 
-                        Nothing ->
-                            div [] []
-                    ]
+                    Nothing ->
+                        div [] []
                 ]
-            , div
-                [ class "opponent center"
-                , style "margin" "30px"
-                , style "background-color" (getColor model.opponent)
-                ]
-                [ div []
-                    [ p [] [ text "Opponent is:" ]
-                    , p [ class "type-name" ] [ text (getName model.opponent) ]
-                    ]
-                ]
-            , counterDiv "verses1 center" leftCounter
-            , counterDiv "verses2 center" centerCounter
-            , counterDiv "verses3 center" rightCounter
             ]
+        , div
+            [ class "opponent center"
+            , style "margin" "30px"
+            , style "background-color" (getColor model.opponent)
+            ]
+            [ div []
+                [ p [] [ text "Opponent is:" ]
+                , p [ class "type-name" ] [ text (getName model.opponent) ]
+                ]
+            ]
+        , counterDiv "verses1 center" leftCounter
+        , counterDiv "verses2 center" centerCounter
+        , counterDiv "verses3 center" rightCounter
+        ]
 
 
 counterDiv : String -> PokeType -> Html Msg
 counterDiv classStr pokeType =
-    div
+    button
         [ class classStr
         , style "background-color" (getColor pokeType)
         , onClick (CounterWith pokeType)
@@ -153,7 +165,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Start ->
-            ( { model | state = Started }, Cmd.none )
+            ( { model | state = Started }, after 1000 NextSecond )
 
         Stop ->
             ( { model | state = Initial }, Cmd.none )
@@ -262,6 +274,15 @@ update msg model =
             in
             ( { model | counterWith = counterWith }
             , Cmd.none
+            )
+
+        NextSecond ->
+            ( { model | remainingseconds = model.remainingseconds - 1 }
+            , if model.remainingseconds == 1 then
+                Cmd.none
+
+              else
+                after 1000 NextSecond
             )
 
 

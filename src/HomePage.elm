@@ -11,6 +11,7 @@ import PokeTypes exposing (PokeType(..), allTypes, getColor, getName, listStrong
 import Random exposing (..)
 import Random.List
 
+gameDuration = 30
 
 type alias LastRoundSummary =
     { message : String
@@ -55,7 +56,7 @@ initialModel =
     { state = Initial
     , opponent = Grass
     , score = 0
-    , remainingseconds = 30
+    , remainingseconds = gameDuration
     , lastRoundSummary = Nothing
     , nextOpponentList = allTypes
     , strongAgainst = ShouldNeverOccur
@@ -89,54 +90,71 @@ gameview model =
     div [ class "game-container" ]
         [ div [ class "title-section" ]
             [ h1 [ class "center" ] [ text "Pokemon Type Practice" ]
-            , p [ class "center" ] [ text ("Score: " ++ toString model.score) ]
+            , h2 [ class "center" ] [ text ("Score: " ++ toString model.score) ]
             , p [ class "center" ] [ text ("Time Remaining: " ++ toString model.remainingseconds) ]
             , div
                 [ style "display" "flex"
                 , style "justify-content" "center"
                 ]
-                [ case model.lastRoundSummary of
-                    Just summary ->
-                        div
-                            [ class "center"
-                            , style "background-color" summary.color
-                            , style "min-width" "300px"
-                            , style "min-height" "40px"
-                            ]
-                            [ text summary.message ]
+                [ if model.remainingseconds == 0 then
+                    button
+                        [ style "width" "300px"
+                        , style "height" "40px"
+                        , onClick Start
+                        ]
+                        [ text "Play Again?" ]
 
-                    Nothing ->
-                        div [] []
+                  else
+                    case model.lastRoundSummary of
+                        Just summary ->
+                            div
+                                [ class "center"
+                                , style "background-color" summary.color
+                                , style "min-width" "300px"
+                                , style "min-height" "40px"
+                                ]
+                                [ text summary.message ]
+
+                        Nothing ->
+                            div [] []
                 ]
             ]
-        , div
-            [ class "opponent center"
-            , style "margin" "30px"
-            , style "background-color" (getColor model.opponent)
+        , if model.remainingseconds == 0 then
+            div [] []
+
+          else
+            div
+                [ class "opponent center"
+                , style "margin" "30px"
+                , style "background-color" (getColor model.opponent)
+                ]
+                [ div []
+                    [ p [] [ text "Opponent is:" ]
+                    , p [ class "type-name" ] [ text (getName model.opponent) ]
+                    ]
+                ]
+        , counterDiv "verses1 center" leftCounter model
+        , counterDiv "verses2 center" centerCounter model
+        , counterDiv "verses3 center" rightCounter model
+        ]
+
+
+counterDiv : String -> PokeType -> Model -> Html Msg
+counterDiv classStr pokeType model =
+    if model.remainingseconds == 0 then
+        div [] []
+
+    else
+        button
+            [ class classStr
+            , style "background-color" (getColor pokeType)
+            , onClick (CounterWith pokeType)
             ]
             [ div []
-                [ p [] [ text "Opponent is:" ]
-                , p [ class "type-name" ] [ text (getName model.opponent) ]
+                [ p [] [ text "Counter with:" ]
+                , p [ class "type-name" ] [ text (getName pokeType) ]
                 ]
             ]
-        , counterDiv "verses1 center" leftCounter
-        , counterDiv "verses2 center" centerCounter
-        , counterDiv "verses3 center" rightCounter
-        ]
-
-
-counterDiv : String -> PokeType -> Html Msg
-counterDiv classStr pokeType =
-    button
-        [ class classStr
-        , style "background-color" (getColor pokeType)
-        , onClick (CounterWith pokeType)
-        ]
-        [ div []
-            [ p [] [ text "Counter with:" ]
-            , p [ class "type-name" ] [ text (getName pokeType) ]
-            ]
-        ]
 
 
 rotateOppponents : List PokeType -> ( PokeType, List PokeType )
@@ -165,7 +183,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Start ->
-            ( { model | state = Started }, after 1000 NextSecond )
+            ( { model | state = Started, remainingseconds=gameDuration }, after 1000 NextSecond )
 
         Stop ->
             ( { model | state = Initial }, Cmd.none )

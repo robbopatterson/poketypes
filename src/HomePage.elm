@@ -183,7 +183,10 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Start ->
-            ( { model | state = Started, remainingseconds=gameDuration }, after 1000 NextSecond )
+            ( { model | 
+                state = Started
+                , remainingseconds=gameDuration
+                , lastRoundSummary=Nothing }, after 1000 NextSecond )
 
         Stop ->
             ( { model | state = Initial }, Cmd.none )

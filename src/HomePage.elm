@@ -326,8 +326,15 @@ generateLastRoundSummary opponentType myCounterType =
 
                 ( False, True ) ->
                     ( "green", 10 )
+        
+        scoreDeltaDisplay =
+            if ( scoreDelta < 0 ) then
+                toString scoreDelta
+            else
+                "+" ++ toString scoreDelta
+
     in
-    { message = getName myCounterType ++ " vs " ++ getName opponentType, color = color, scoreDelta = scoreDelta }
+    { message = scoreDeltaDisplay ++ " " ++ getName myCounterType ++ " vs " ++ getName opponentType, color = color, scoreDelta = scoreDelta }
 
 
 startOpponentSelection : Cmd Msg

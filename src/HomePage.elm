@@ -13,7 +13,7 @@ import Random.List
 
 
 gameDuration =
-    30
+    90
 
 
 type alias LastRoundSummary =
@@ -74,7 +74,7 @@ view model =
     if model.state == Initial then
         div [ class "jumbotron" ]
             [ h1 [] [ text "Welcome to PokeTypes!" ]
-            , p [] [ text "Choose as many best Counters as you can in 30 seconds." ]
+            , p [] [ text "Choose as many best Counters as you can in 90 seconds." ]
             , a [ href "https://www.pinterest.ca/pin/329396160253653038/" ] [ text "Click for Chart" ]
             , p [] []
             , button [ onClick Start ] [ text "Start" ]
@@ -190,6 +190,7 @@ update msg model =
                 | state = Started
                 , remainingseconds = gameDuration
                 , lastRoundSummary = Nothing
+                , score = 0
               }
             , after 1000 NextSecond
             )

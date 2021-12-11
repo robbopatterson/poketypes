@@ -92,7 +92,7 @@ gameview model =
     in
     div [ class "game-container" ]
         [ div [ class "title-section" ]
-            [ h1 [ class "center" ] [ text "Pokemon Type Practice" ]
+            [ h1 [ class "center" ] [ text "PokeType Battle" ]
             , h2 [ class "center" ] [ text ("Score: " ++ toString model.score) ]
             , p [ class "center" ] [ text ("Time Remaining: " ++ toString model.remainingseconds) ]
             , div

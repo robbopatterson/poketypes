@@ -7,11 +7,14 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import List exposing (head)
-import PokeTypes exposing (PokeType(..), allTypes, getColor, getName, listStrongAgainst, listWeakAgainst)
+import PokeTypes exposing (PokeType(..), allTypes, getColor, getName, listStrongAgainst, listStrongAgainstAndWhy, listWeakAgainst)
 import Random exposing (..)
 import Random.List
 
-gameDuration = 30
+
+gameDuration =
+    30
+
 
 type alias LastRoundSummary =
     { message : String
@@ -183,10 +186,13 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Start ->
-            ( { model | 
-                state = Started
-                , remainingseconds=gameDuration
-                , lastRoundSummary=Nothing }, after 1000 NextSecond )
+            ( { model
+                | state = Started
+                , remainingseconds = gameDuration
+                , lastRoundSummary = Nothing
+              }
+            , after 1000 NextSecond
+            )
 
         Stop ->
             ( { model | state = Initial }, Cmd.none )
@@ -329,26 +335,79 @@ generateLastRoundSummary opponentType myCounterType =
 
                 ( False, True ) ->
                     ( "green", 10 )
-        
+
         scoreDeltaDisplay =
-            if ( scoreDelta < 0 ) then
+            if scoreDelta < 0 then
                 toString scoreDelta
+
             else
                 "+" ++ toString scoreDelta
 
-        message =   -- Something like "+10 Fire melts Ice"
-            scoreDeltaDisplay 
-            ++ " " ++ getName myCounterType 
-            ++ " " ++ vsOrWhy opponentType myCounterType ++ " " 
-            ++ getName opponentType
-
+        message =
+            -- Something like "+10 Fire melts Ice"
+            scoreDeltaDisplay
+                ++ " "
+                ++ vsOrWhy opponentType myCounterType
     in
     { message = message, color = color, scoreDelta = scoreDelta }
 
+
+
 -- vsOrWhy tries to articulate why one type defeats another (ex "melts" for Fire vs Ice)
-vsOrWhy : PokeType -> PokeType -> String    
-vsOrWhy opponentType myCounterType  =
-    "vs"
+
+
+vsOrWhy : PokeType -> PokeType -> String
+vsOrWhy opponentType myCounterType =
+    let
+        strongAgainstReason =
+            getStrongAgainstReason myCounterType opponentType
+
+        reverseStrongAgainstReason =
+            getStrongAgainstReason opponentType myCounterType
+    in
+    case strongAgainstReason of
+        Just reason ->
+            getName myCounterType ++ " " ++ reason ++ " " ++ getName opponentType
+
+        Nothing ->
+            case reverseStrongAgainstReason of
+                Just reason ->
+                    getName opponentType ++ " " ++ reason ++ " " ++ getName myCounterType
+
+                Nothing ->
+                    getName myCounterType ++ " vs " ++ getName opponentType
+
+
+getStrongAgainstReason : PokeType -> PokeType -> Maybe String
+getStrongAgainstReason pokeType againstType =
+    let
+        strongAgainstAndWhy =
+            listStrongAgainstAndWhy pokeType
+
+        _ =
+            Debug.log "pokeType" pokeType
+
+        _ =
+            Debug.log "strongAgainstAndWhy" strongAgainstAndWhy
+
+        strongAgainstFiltered =
+            List.filter
+                (\( why, pt ) -> pt == againstType)
+                strongAgainstAndWhy
+
+        _ =
+            Debug.log "againstType" againstType
+
+        _ =
+            Debug.log "strongAgainstFiltered" strongAgainstFiltered
+    in
+    case List.head strongAgainstFiltered of
+        Just ( why, pt ) ->
+            Just why
+
+        Nothing ->
+            Nothing
+
 
 startOpponentSelection : Cmd Msg
 startOpponentSelection =
